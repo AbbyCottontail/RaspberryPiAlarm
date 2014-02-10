@@ -1,0 +1,18 @@
+TODO -
+events/loops
+
+
+TaskList -
+connect to google calendar
+Select calendar to use
+grab events of today
+
+
+
+create keywords, parse events for keywords and time
+display upcoming event(s?), set options according to keywords (alarm/reminder/none anymore.)
+
+tigger alarm/reminders when timer reach time.
+
+
+
