@@ -58,8 +58,6 @@ class GoogleServices(object):
         try:
             return service
         except client.AccessTokenRefreshError:
-            print ("The credentials have been revoked or expired, please re-run"
-                   "the application to re-authorize")
             return None
 
     def get_flags(self):

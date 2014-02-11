@@ -9,8 +9,10 @@ Created on 8 Feb 2014
 from Cli import Cli
 from Cli import option
 from Cli import CliHelpError
+from oauth2client.client import AccessTokenRefreshError
 import GoogleServices
 import Flags
+import CalendarSelection
 
 
 class MyOptions(object):
@@ -35,6 +37,7 @@ class MyOptions(object):
         pass
 
 
+
 def get_events(services, calendar_id='primary', pageToken=None):
     events = services.events().list(
         calendarId=calendar_id,
@@ -54,7 +57,7 @@ def main():
         myoptions = Cli(MyOptions).parseArguments()
     except CliHelpError as helpError:
         print helpError
-        return 1
+        return 0
 
     flags = Flags.Flags(myoptions.getauth_host_name(),
                         myoptions.getauth_host_port(),
@@ -63,18 +66,24 @@ def main():
 
     newservices = GoogleServices.GoogleServices(myoptions.getclient_secret(), flags)
 
-    services = newservices.startgoogleservices()
-    events = get_events(services)
+    try:
+        google_services = newservices.startgoogleservices()
+    except AccessTokenRefreshError:
+        print("The credentials have been revoked or expired, please re-run the application to re-authorize")
+        return 0
 
-    while True:
-        for event in events['items']:
-            print(event)
-        page_token = events.get('nextPageToken')
-        if page_token:
-            events = get_events(page_token)
-        else:
-            print('Nothing left')
-            break
+    select_calendar = CalendarSelection.calendarlisting(google_services)
+    # events = get_events(google_services)
+    #
+    # while True:
+    #     for event in events['items']:
+    #         print(event)
+    #     page_token = events.get('nextPageToken')
+    #     if page_token:
+    #         events = get_events(page_token)
+    #     else:
+    #         print('Nothing left')
+    #         break
 
 
 if __name__ == '__main__':
