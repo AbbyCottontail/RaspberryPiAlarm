@@ -284,12 +284,12 @@ class option(object):
 
 class positional(object):
     def __init__(self, relativePosition, valueFormatter=None):
+        self.__f = f
         self.__relativePosition = relativePosition
         self.__valueFormatter = valueFormatter
 
     def __call__(self, f):
         self.__validateOptions(f.__name__)
-        self.__f = f
         return self
 
     @property
@@ -438,8 +438,7 @@ class Cli(object):
         else:
             formatString += '%s'
 
-        helpTextLines = []
-        helpTextLines.append('Usage: %s %s' % (prog, ' '.join(usage)))
+        helpTextLines = ['Usage: %s %s' % (prog, ' '.join(usage))]
         if purpose:
             helpTextLines.append(purpose)
         helpTextLines.append('where:')
@@ -738,13 +737,7 @@ class _PositionalDescription(_Description):
 
     @property
     def helpTextComponents(self):
-        components = {}
-
-        components['usage'] = self.name
-        components['longName'] = self.name
-        components['shortName'] = ''
-        components['value'] = ''
-        components['default'] = ''
+        components = {'usage': self.name, 'longName': self.name, 'shortName': '', 'value': '', 'default': ''}
 
         if self.hasDocString:
             components['docString'] = '%s' % self.docString
@@ -837,7 +830,6 @@ class _Context(object):
             self.__option = self.__options['get' + methodNameSuffix]
             self.__parsedOptions[optionName] = []
         elif 'is' + methodNameSuffix in self.__options:
-            self.__option = self.__options['is' + methodNameSuffix]
             self.__parsedOptions[optionName] = True
         else:
             raise CliParseError('Unrecognised option --%s' % optionName)

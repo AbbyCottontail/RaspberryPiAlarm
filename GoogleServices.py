@@ -1,10 +1,10 @@
-'''
+"""
 Created on 8 Feb 2014
 
 @author: AbbyTheRat
 
-Contains classes
-'''
+Loads the google services and setup oAuth. Cache valid credentials.
+"""
 
 import httplib2
 import os
@@ -15,65 +15,61 @@ from oauth2client import client
 from oauth2client import tools
 
 
-
-
 class GoogleServices(object):
-    '''
+    """
     classdocs
-    '''
+    """
 
     ClientSecrets = None
     flags = None
     flow = None
     parser = None
-    
-    def __init__(self, ClientSecrets, flags):
-        self.setFlags(flags)
-        self.setClientSecrets(ClientSecrets)
-        
+
+    def __init__(self, client_secrets, flags):
+        """
+
+        :rtype : object
+        """
+        self.__flags = flags
+        self.__ClientSecrets = os.path.join(os.path.dirname(__file__), client_secrets)
+        #TODO - file path check - make sure the file is valid
+        self.set_flags(flags)
+        self.set_client_secrets(client_secrets)
+
         self.flow = client.flow_from_clientsecrets(
-                                                   self.getClientSecrets(),
-                                                   scope=[
-                                                          'https://www.googleapis.com/auth/calendar.readonly',
-                                                          ], 
-                                                   message=tools.message_if_missing(self.getClientSecrets())
-                                                   )
-    
-    def startGoogleServices(self):
+            self.get_client_secrets(),
+            scope=[
+                'https://www.googleapis.com/auth/calendar.readonly',
+            ],
+            message=tools.message_if_missing(self.get_client_secrets())
+        )
+
+    def startgoogleservices(self):
         storage = file.Storage('credStore.dat')
         creds = storage.get()
         if creds is None or creds.invalid:
             creds = tools.run_flow(self.flow, storage, self.getFlags())
-        
 
         http = httplib2.Http()
         http = creds.authorize(http)
-        
+
         service = build(serviceName='calendar', version='v3', http=http)
-        
+
         try:
             return service
         except client.AccessTokenRefreshError:
             print ("The credentials have been revoked or expired, please re-run"
-                    "the application to re-authorize")
+                   "the application to re-authorize")
             return None
-        
-        
-    '''setters/getters methods'''
 
-    def getFlags(self):
+    def get_flags(self):
         return self.__flags
-    
-    def getClientSecrets(self):
+
+    def get_client_secrets(self):
         return self.__ClientSecrets
-    
 
-    def setClientSecrets(self, value):
-        self.__ClientSecrets = os.path.join(os.path.dirname(__file__), value)
-        
-    def setFlags(self, value):
-        self.__flags = value
-    
+    def set_client_secrets(self, value):
+        pass
 
-    
-    
+    def set_flags(self, value):
+        pass
