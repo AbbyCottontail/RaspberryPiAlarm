@@ -13,7 +13,59 @@ from oauth2client.client import AccessTokenRefreshError
 import GoogleServices
 import Flags
 import CalendarSelection
+import EventListing
+from twisted.internet import reactor
+from twisted.web.client import getPage
+import WeatherParser
+import xml.etree.ElementTree as et
+import traceback
 
+import sys
+
+WEATHER_COM_URL = 'http://wxdata.weather.com/wxdata/weather/local/%s?unit=%s&cc=*'
+
+
+def get_weather(location_id, units = 'metric'):
+    """Fetch weather report from Weather.com
+
+    Parameters:
+        location_id: A location ID or 5 digit US zip code.
+
+        units: type of units. 'metric' for metric and 'imperial' for non-metric.
+        Note that choosing metric units changes all the weather units to metric.
+        For example, wind speed will be reported as kilometers per hour and
+        barometric pressure as millibars.
+
+    """
+
+    if units == 'm':
+        unit = 'm'
+    elif units == 'i' or units == '':    # for backwards compatibility
+        unit = ''
+    else:
+        unit = 'm'      # fallback to metric
+    url = WEATHER_COM_URL % (location_id, unit)
+
+    getPage(url).addCallbacks(
+        callback=fetch_xml_data,
+        errback=fetch_error)
+
+def fetch_xml_data(data):
+    xml_root = et.fromstring(data)
+
+    try:
+        wp = WeatherParser.weather_parser(xml_root)
+    except:
+        traceback.print_exc()
+
+    shutdownwebapp()
+
+def fetch_error(err):
+    print "error ", err
+    shutdownwebapp()
+
+def shutdownwebapp():
+    reactor.stop()
 
 class MyOptions(object):
     @option(default='localhost')
@@ -36,20 +88,13 @@ class MyOptions(object):
     def getclient_secret(self):
         pass
 
+    @option(default='CAXX0343:1:CA')
+    def getweather_location(self):
+        pass
 
-
-def get_events(services, calendar_id='primary', pageToken=None):
-    events = services.events().list(
-        calendarId=calendar_id,
-        singleEvents=True,
-        maxResults=1000,
-        orderBy='startTime',
-        timeMin='2014-01-01T00:00:00-08:00',
-        timeMax='2014-10-30T00:00:00-08:00',
-        pageToken=pageToken,
-    ).execute()
-
-    return events
+    @option(default='m')
+    def getmetric_unit(self):
+        pass
 
 
 def main():
@@ -58,6 +103,8 @@ def main():
     except CliHelpError as helpError:
         print helpError
         return 0
+
+    get_weather(myoptions.getweather_location(), myoptions.getmetric_unit())
 
     flags = Flags.Flags(myoptions.getauth_host_name(),
                         myoptions.getauth_host_port(),
@@ -73,17 +120,12 @@ def main():
         return 0
 
     select_calendar = CalendarSelection.calendarlisting(google_services)
-    # events = get_events(google_services)
-    #
-    # while True:
-    #     for event in events['items']:
-    #         print(event)
-    #     page_token = events.get('nextPageToken')
-    #     if page_token:
-    #         events = get_events(page_token)
-    #     else:
-    #         print('Nothing left')
-    #         break
+
+    calendarid = select_calendar.return_calendar_id()
+    EventListing.event_listing(google_services, calendarid)
+
+
+    reactor.run()
 
 
 if __name__ == '__main__':
