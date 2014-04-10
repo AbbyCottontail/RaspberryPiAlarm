@@ -2,7 +2,14 @@ __author__ = 'AbbyTheRat'
 
 class weather_parser():
     """
-    translate XML into a object
+    translate XML into a object.
+
+    Allows for translating tags into the correct word. Most likely a better way to do this but eh, AbbyTheRat is new to
+    Python. At least this make it easier to create a new lang map for translating at least the weather part into another
+    language.
+
+    Maybe another day, I'll refactor this to share lang_map across all the objects and share get get_unit function.
+    Possible this is better as a single class. This works fine for me.
     """
     def __init__(self, xml_root):
 
@@ -17,7 +24,7 @@ class weather_parser():
 
 class weather_units():
     """
-
+        Defines basic infomation about the data received, such as unit.
     """
     lang_map = {'locale': 'locale', 'form': 'form', 'head':'units', 'ut': 'temperature', 'ud': 'distance', 'us': 'speed',
                 'up': 'pressure', 'ur': 'rainfall'}
@@ -38,7 +45,7 @@ class weather_units():
         if tag in self.lang_map:
             arr_tag.append(self.lang_map[tag])
         else:
-            arr_tag.append('tag: ' + tag) #if no tags in lang_map - print tag
+            arr_tag.append('tag: ' + tag)  # if no tags in lang_map - print tag
         if tag in self.data_map:
             arr_tag.append(self.data_map[tag])
         else:
@@ -47,6 +54,9 @@ class weather_units():
         return arr_tag
 
 class weather_cc():
+    """
+        Defines current conditions(cc). Such as current temperature, wind speed and humidity
+    """
 
     data_map = None
     lang_map = {'cc': 'current conditions', 'lsup': 'last updated', 'obst': 'weather station', 'tmp': 'temperature',
@@ -92,7 +102,11 @@ class weather_cc():
 
 
 class weather_loc():
-    lang_map = {'loc': 'location id', 'dnam': 'name', 'tm': 'time', 'lat': 'longitude', 'lon': 'longitude',
+    """
+        Defines infomation about the location of the weather. Such as timezone, longitude/latitude, sunset/rise times.
+
+    """
+    lang_map = {'loc': 'location id', 'dnam': 'name', 'tm': 'time', 'lat': 'latitude', 'lon': 'longitude',
                 'sunr': 'sunrise', 'suns': 'sunset', 'zone': 'timezone'}
     data_map = None
 

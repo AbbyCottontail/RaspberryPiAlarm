@@ -17,7 +17,8 @@ from oauth2client import tools
 
 class GoogleServices(object):
     """
-    classdocs
+        Performs OAuth 2 checks. If there's no key, it'll requests permission to use the users' google services and store
+        for later user.
     """
 
     ClientSecrets = None
@@ -27,8 +28,13 @@ class GoogleServices(object):
 
     def __init__(self, client_secrets, flags):
         """
+            This is doing so many things via in API library, Abby only understands about half the things it's doing
+            The main function is to authorize itself with the google services. First checking to see if there's any stored
+            from an old request, check to make sure it's still valid and haven't been revoked or create a request URL
+            for user to give this app permission and store credentials.
 
-        :rtype : object
+
+            :rtype : object
         """
         self.__flags = flags
         self.__ClientSecrets = os.path.join(os.path.dirname(__file__), client_secrets)
@@ -47,12 +53,18 @@ class GoogleServices(object):
     def startgoogleservices(self):
         storage = file.Storage('credStore.dat')
         creds = storage.get()
+        #If there is no credentials stored in file, then create a new flow. Whatever flow means.
         if creds is None or creds.invalid:
+            #This function creates a request URL for the user to use in their browser, (or use web server if available
+            #which I won't use due to the nature of this app
             creds = tools.run_flow(self.flow, storage, self.getFlags())
+
+
 
         http = httplib2.Http()
         http = creds.authorize(http)
 
+        #attempts to create the accepted services.
         service = build(serviceName='calendar', version='v3', http=http)
 
         try:

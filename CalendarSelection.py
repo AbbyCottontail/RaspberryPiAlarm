@@ -31,7 +31,12 @@ class calendarlisting(object):
         page_token = None
 
         while True:
-            calendar_list = self.google_service.calendarList().list(pageToken=page_token).execute()
+            #fetch list from google
+            calendar_list = self.google_service.calendarList().list(pageToken=page_token).execute()#
+            #loop thou and store calendar ID for selection. Only Calendars that belongs to the owner
+            #It might be a better idea to change this, maybe I do want the Holidays as well.
+            #Idea - allow a selection of calendar for events to be displayed
+            #TODO modify this so only the selection is displayed when there's more than 1 calendar to be picked
             for calendar_list_entry in calendar_list['items']:
                 if 'owner' == calendar_list_entry['accessRole']:
                     self.calendarIDlist.append(calendar_list_entry['id'])
@@ -51,6 +56,7 @@ class calendarlisting(object):
 
         page_token = None
 
+        #If there's more then one ID found, ask user to select a calendar
         if len(self.calendarIDlist) > 1:
             try:
                 inputselection = input("Select Calendar: ")
